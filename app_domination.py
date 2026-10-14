@@ -3,13 +3,35 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
+
+# -----------------------------
+# 🌐 Langue : français par défaut, anglais avec ?lang=en dans l'adresse
+# -----------------------------
+LANGUE = "en" if st.query_params.get("lang") == "en" else "fr"
+
+
+def tr(fr, en):
+    return en if LANGUE == "en" else fr
+
+
+def selecteur_langue():
+    """Boutons FR | EN en haut de page ; le choix est écrit dans l'adresse."""
+    _, col = st.columns([3, 1])
+    choix = col.radio("Langue / Language", ["FR", "EN"], index=0 if LANGUE == "fr" else 1,
+                      horizontal=True, label_visibility="collapsed")
+    if choix.lower() != LANGUE:
+        st.query_params["lang"] = choix.lower()
+        st.rerun()
+
 # -----------------------------
 # 🔧 Configuration de la page
 # -----------------------------
-st.set_page_config(page_title="Indicateur de domination - Projet Foot", layout="centered")
-st.title("⚽ Indicateur de domination – Football Analytics ⚽")
+st.set_page_config(page_title=tr("Indicateur de domination - Projet Foot", "Match Dominance Indicator - Football Project"),
+                   layout="centered")
+selecteur_langue()
+st.title(tr("⚽ Indicateur de domination – Football Analytics ⚽", "⚽ Match Dominance Indicator – Football Analytics ⚽"))
 
-st.markdown("""
+st.markdown(tr("""
 Ce projet vise à **quantifier la domination d'une équipe pendant un match** à partir des événements de jeu. Ce projet s’appuie sur les données disponibles au lien suivant : https://github.com/metrica-sports/sample-data.
 
 L'idée est de créer un **indicateur de domination** basé sur plusieurs critères :
@@ -28,14 +50,32 @@ Les barres :
 - En **rose**, celle de l’équipe à l’extérieur (Away).
 
 Les étoiles rouges indiquent les **buts**.
-""")
+""", """
+This project aims to **quantify a team's dominance during a match** from event data. It is based on the data available at: https://github.com/metrica-sports/sample-data.
+
+The idea is to build a **dominance indicator** based on several criteria:
+- **Possession duration** (the longer a team keeps the ball, the more it dominates),
+- **Average position on the pitch** (closer to the opponent's goal = more danger),
+- **Number of completed passes** (fluidity of play),
+- **Number of shots** (attacking threat).
+
+Note: these criteria were chosen because they are good indicators of a team's dominance, but the definition of dominance varies from one coaching staff to another, so the indicator can be adjusted to their needs.
+
+The indicator can then be aggregated over time windows (1, 5, 10, 15 or 30 minutes) to show how a team's **momentum** evolves over the match.
+
+The bars:
+- in **purple**, the dominance of the home team (Home),
+- in **pink**, the dominance of the away team (Away).
+
+Red stars mark the **goals**.
+"""))
 
 
 # -----------------------------
 # 🎯 Sélection du match
 # -----------------------------
 match_choice = st.selectbox(
-    "Choisir un match :",
+    tr("Choisir un match :", "Choose a match:"),
     ["Match 1", "Match 2"]
 )
 
@@ -50,7 +90,7 @@ match_file = file_map[match_choice]
 # ⏱️ Sélection du découpage temporel
 # -----------------------------
 segmentation = st.selectbox(
-    "Choisir une domination par fenêtre temporelle (en minutes) :",
+    tr("Choisir une domination par fenêtre temporelle (en minutes) :", "Time window for dominance (in minutes):"),
     [1, 5, 10, 15, 30],
     index=0
 )
@@ -198,7 +238,7 @@ for _, g in goals.iterrows():
     ax.scatter(x_star, y_star, color='red', edgecolors='black', s=200, marker='*', zorder=5)
 
 # mise en forme
-ax.set_title("Indicateur de domination du match - Momentum", fontsize=16, pad=15)
+ax.set_title(tr("Indicateur de domination du match - Momentum", "Match dominance indicator - Momentum"), fontsize=16, pad=15)
 ax.set_xlabel(f"Minute")
 ax.set_xlim(0, match_info['minute'].max() + 1)
 ax.set_ylim(-1, 1)
